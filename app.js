@@ -3,8 +3,13 @@ require('dotenv').config()
 const express = require('express')
 const ejs = require('ejs')
 const mongoose = require('mongoose')
-const encrypt = require('mongoose-encryption')
+const bcrypt = require('bcrypt')
 const app = express()
+
+// const encrypt = require('mongoose-encryption')
+// const md5 = require('md5')
+
+const saltRounds = 10;
 
 app.use(express.static('public'))
 app.use(express.urlencoded({extended: true}))
@@ -18,8 +23,10 @@ const userSchema = new mongoose.Schema({
 })
 
 
-//Plugins are added to give extra functionalities to mongoose schemas.
-userSchema.plugin(encrypt, { secret: process.env.SECRETS, encryptionFields: ['password'] })
+/*Plugins are added to give extra functionalities to mongoose schemas.
+userSchema.plugin(encrypt, { secret: process.env.SECRETS, encryptionFields: ['password'] }) */
+
+
 
 const User = mongoose.model('User',userSchema)
 
@@ -35,19 +42,24 @@ app.route('/register')
     
     .post((req,res) =>{
         const {username, password} = req.body
-        
-        const newUser = new User({
-            email: username,
-            password: password
-        })
 
-        newUser.save(err =>{
-            if(!err){
-                res.render('secrets')
-            }else{
-                console.log(err);
-            }
+        bcrypt.hash(password, saltRounds, (err, hash) =>{
+
+            const newUser = new User({
+                email: username,
+                password: hash
+            })
+    
+            newUser.save(err =>{
+                if(!err){
+                    res.render('secrets')
+                }else{
+                    console.log(err);
+                }
+            })
+
         })
+        
     })
 
 app.route('/login')
@@ -63,9 +75,13 @@ app.route('/login')
             if(err){
                 console.log(err);
             }else{
-                if(foundUser.password === password){
-                    res.render('secrets')
-                }
+
+                bcrypt.compare(password, foundUser.password, (err, result) =>{
+                    if(result){
+                        res.render('secrets')
+                    }
+                })
+                
             }
         })
     })
