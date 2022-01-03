@@ -1,4 +1,5 @@
 //jshint esversion:6
+require('dotenv').config()
 const express = require('express')
 const ejs = require('ejs')
 const mongoose = require('mongoose')
@@ -16,10 +17,9 @@ const userSchema = new mongoose.Schema({
     password: String
 })
 
-const secret = 'Thisismysecret.'
 
 //Plugins are added to give extra functionalities to mongoose schemas.
-userSchema.plugin(encrypt, { secret: secret, encryptionFields: ['password'] })
+userSchema.plugin(encrypt, { secret: process.env.SECRETS, encryptionFields: ['password'] })
 
 const User = mongoose.model('User',userSchema)
 
