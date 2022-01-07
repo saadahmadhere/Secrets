@@ -8,6 +8,10 @@ body {
     text-align: center;
 }
 
+/* .card-body{
+  padding: 0;
+} */
+
 .secret-text {
   text-align: center;
   font-size: 2rem;
